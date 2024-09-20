@@ -3,10 +3,9 @@ import 'package:flutter/material.dart';
 
 import 'app_text_field.dart';
 
-typedef ItemSelectionCallBack = void Function(
-    List<SelectedListItem> selectedItems);
+typedef ItemSelectionCallBack = void Function(List<SelectedListItem> selectedItems);
 
-typedef ListItemBuilder = Widget Function(int index);
+typedef ListItemBuilder = Widget Function(int index, SelectedListItem item);
 
 typedef BottomSheetListener = bool Function(DraggableScrollableNotification draggableScrollableNotification);
 
@@ -167,10 +166,7 @@ class _MainBodyState extends State<MainBody> {
                           alignment: Alignment.centerRight,
                           child: ElevatedButton(
                             onPressed: () {
-                              List<SelectedListItem> selectedList = widget
-                                  .dropDown.data
-                                  .where((element) => element.isSelected)
-                                  .toList();
+                              List<SelectedListItem> selectedList = widget.dropDown.data.where((element) => element.isSelected).toList();
                               List<SelectedListItem> selectedNameList = [];
 
                               for (var element in selectedList) {
@@ -178,13 +174,10 @@ class _MainBodyState extends State<MainBody> {
                               }
 
                               // ignore: deprecated_member_use_from_same_package
-                              (widget.dropDown.selectedItems ??
-                                      widget.dropDown.onSelected)
-                                  ?.call(selectedNameList);
+                              (widget.dropDown.selectedItems ?? widget.dropDown.onSelected)?.call(selectedNameList);
                               _onUnFocusKeyboardAndPop();
                             },
-                            child: widget.dropDown.submitButtonChild ??
-                                const Text('Done'),
+                            child: widget.dropDown.submitButtonChild ?? const Text('Done'),
                           ),
                         ),
                       ),
@@ -217,60 +210,48 @@ class _MainBodyState extends State<MainBody> {
                       ),
                 ),
 
-              /// Listview (list of data with check box for multiple selection & on tile tap single selection)
-              Expanded(
-                child: ListView.builder(
-                  controller: scrollController,
-                  itemCount: mainList.length,
-                  itemBuilder: (context, index) {
-                    bool isSelected = mainList[index].isSelected;
+                /// Listview (list of data with check box for multiple selection & on tile tap single selection)
+                Expanded(
+                  child: ListView.builder(
+                    controller: scrollController,
+                    itemCount: mainList.length,
+                    itemBuilder: (context, index) {
+                      bool isSelected = mainList[index].isSelected;
                       return InkWell(
                         onTap: widget.dropDown.enableMultipleSelection
-                          ? null
-                          : () {
-                              // ignore: deprecated_member_use_from_same_package
-                              (widget.dropDown.selectedItems ??
-                                      widget.dropDown.onSelected)
-                                  ?.call([mainList[index]]);
-                              _onUnFocusKeyboardAndPop();
-                            },
-                      child: Container(
-                        color: widget.dropDown.dropDownBackgroundColor,
-                        child: Padding(
-                          padding: const EdgeInsets.fromLTRB(20, 10, 20, 0),
-                          child: ListTile(
-                            title: widget.dropDown.listItemBuilder
-                                    ?.call(index) ??
+                            ? null
+                            : () {
+                                // ignore: deprecated_member_use_from_same_package
+                                (widget.dropDown.selectedItems ?? widget.dropDown.onSelected)?.call([mainList[index]]);
+                                _onUnFocusKeyboardAndPop();
+                              },
+                        child: Container(
+                          color: widget.dropDown.dropDownBackgroundColor,
+                          child: Padding(
+                            padding: const EdgeInsets.fromLTRB(20, 10, 20, 0),
+                            child: ListTile(
+                              title: widget.dropDown.listItemBuilder?.call(index, mainList[index]) ??
                                   Text(
                                     mainList[index].name,
                                   ),
                               trailing: widget.dropDown.enableMultipleSelection
                                   ? GestureDetector(
                                       onTap: () {
-                                        if (!isSelected &&
-                                          widget.dropDown.maxSelectedItems !=
-                                              null) {
-                                        if (mainList
-                                                .where((e) => e.isSelected)
-                                                .length >=
-                                            widget.dropDown.maxSelectedItems!) {
-                                          return;
+                                        if (!isSelected && widget.dropDown.maxSelectedItems != null) {
+                                          if (mainList.where((e) => e.isSelected).length >= widget.dropDown.maxSelectedItems!) {
+                                            return;
+                                          }
                                         }
-                                      }
-                                      setState(() {
-                                        mainList[index].isSelected =
-                                            !isSelected;
-                                      });
-                                    },
-                                    child: isSelected
-                                        ? const Icon(Icons.check_box)
-                                        : const Icon(
-                                            Icons.check_box_outline_blank),
-                                  )
-                                : const SizedBox.shrink(),
+                                        setState(() {
+                                          mainList[index].isSelected = !isSelected;
+                                        });
+                                      },
+                                      child: isSelected ? const Icon(Icons.check_box) : const Icon(Icons.check_box_outline_blank),
+                                    )
+                                  : const SizedBox.shrink(),
+                            ),
                           ),
                         ),
-                      ),
                       );
                     },
                   ),
